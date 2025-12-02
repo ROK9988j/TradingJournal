@@ -782,6 +782,50 @@ def api_update_entry():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/delete-entry', methods=['POST'])
+@login_required
+def api_delete_entry():
+    """Delete a specific entry by index"""
+    try:
+        data = request.json
+        entry_index = data.get('index')
+
+        if entry_index is None:
+            return jsonify({'error': 'Missing entry index'}), 400
+
+        if IS_CLOUD:
+            journal = load_cloud_journal()
+            entries = journal.get('entries', [])
+
+            # Convert to positive index if negative
+            if entry_index < 0:
+                entry_index = len(entries) + entry_index
+
+            if 0 <= entry_index < len(entries):
+                deleted = entries.pop(entry_index)
+                save_cloud_journal(journal)
+                return jsonify({'success': True, 'deleted': deleted.get('timestamp', 'Unknown')})
+            else:
+                return jsonify({'error': 'Entry not found'}), 404
+        else:
+            return jsonify({'error': 'Delete not supported in local mode'}), 400
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/clear-journal', methods=['POST'])
+@login_required
+def api_clear_journal():
+    """Clear all journal entries (cloud mode only)"""
+    try:
+        if IS_CLOUD:
+            save_cloud_journal({'entries': []})
+            return jsonify({'success': True, 'message': 'Journal cleared'})
+        else:
+            return jsonify({'error': 'Clear not supported in local mode - delete the Word file manually'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # ============================================================================
 # Main
