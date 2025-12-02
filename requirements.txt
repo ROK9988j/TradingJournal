@@ -1,0 +1,21 @@
+# Trading Journal Web App - Dependencies
+# ======================================
+
+# Core Framework
+flask>=2.0.0
+gunicorn>=21.0.0
+
+# AI Integration
+anthropic>=0.7.0
+
+# Market Data
+yfinance>=0.2.0
+
+# Image Storage
+cloudinary>=1.36.0
+
+# Word Document Support (optional - only for local mode)
+python-docx>=0.8.11
+
+# HTTP Requests
+requests>=2.28.0

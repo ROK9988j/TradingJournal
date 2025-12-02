@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Journal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-color: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --accent-blue: #58a6ff;
+            --accent-purple: #a371f7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--accent-blue);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .clock {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .settings-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: var(--border-color);
+        }
+
+        /* Main Layout - Single Column */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* Market Overview */
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .market-item {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .market-symbol {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .market-price {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .market-change {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .market-change.up {
+            color: var(--accent-green);
+        }
+
+        .market-change.down {
+            color: var(--accent-red);
+        }
+
+        .market-change.flat {
+            color: var(--text-secondary);
+        }
+
+        /* Sentiment Badge */
+        .sentiment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .sentiment-badge.bullish {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+        }
+
+        .sentiment-badge.bearish {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--accent-red);
+        }
+
+        .sentiment-badge.neutral {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        /* TradingView Chart */
+        .chart-container {
+            height: 450px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Journal Input */
+        .journal-textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .journal-textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .journal-textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4393e6;
+        }
+
+        .btn-primary:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2ea043;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-purple {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .btn-purple:hover {
+            background: #8b5cf6;
+        }
+
+        .btn-orange {
+            background: #f97316;
+            color: white;
+        }
+
+        .btn-orange:hover {
+            background: #ea580c;
+        }
+
+        .btn-teal {
+            background: #14b8a6;
+            color: white;
+        }
+
+        .btn-teal:hover {
+            background: #0d9488;
+        }
+
+        .btn-slate {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-slate:hover {
+            background: #475569;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .button-row-spacer {
+            flex: 1;
+        }
+
+        /* Preview Section - Editable */
+        .preview-textarea {
+            width: 100%;
+            min-height: 300px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .preview-textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .preview-textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Entry Counter */
+        .entry-counter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(88, 166, 255, 0.1);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+
+        /* Checkbox */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .checkbox-label input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-blue);
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .status-message.show {
+            display: flex;
+        }
+
+        .status-message.success {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+        }
+
+        .status-message.error {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--accent-red);
+        }
+
+        .status-message.loading {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-blue);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            margin: 1rem;
+        }
+
+        .modal.modal-large {
+            max-width: 900px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Journal Viewer */
+        .journal-viewer {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .journal-entry-block {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .journal-entry-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        /* Entry List */
+        .entry-list {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .entry-list-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .entry-list-item:hover {
+            border-color: var(--accent-blue);
+            background: var(--bg-secondary);
+        }
+
+        .entry-list-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .entry-list-date {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .entry-list-sentiment {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .entry-list-preview {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Image upload area */
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .image-upload-area:hover,
+        .image-upload-area.drag-over {
+            border-color: var(--accent-blue);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .image-upload-area i {
+            font-size: 2rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .image-upload-area p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .image-preview {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .image-preview img {
+            max-width: 150px;
+            max-height: 100px;
+            display: block;
+        }
+
+        .image-preview .remove-image {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-preview .remove-image:hover {
+            background: var(--accent-red);
+        }
+
+        .image-preview.uploading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Settings sections */
+        .settings-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .settings-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .settings-section-title i {
+            color: var(--accent-blue);
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: color 0.2s;
+        }
+
+        .refresh-btn:hover {
+            color: var(--accent-blue);
+        }
+
+        .refresh-btn.spinning i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .market-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .button-row-spacer {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .market-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-chart-line"></i>
+            Trading Journal
+        </div>
+        <div class="header-right">
+            <div class="clock" id="clock"></div>
+            <button class="settings-btn" onclick="openSettings()">
+                <i class="fas fa-cog"></i>
+                Settings
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Market Overview -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-globe"></i>
+                    Market Overview
+                </span>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span id="market-timestamp" style="font-size: 0.8rem; color: var(--text-secondary);"></span>
+                    <button class="refresh-btn" onclick="refreshMarketData()" id="refresh-btn">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="market-grid" id="market-grid">
+                    <!-- Market items will be populated by JS -->
+                </div>
+                <div id="sentiment-container"></div>
+            </div>
+        </div>
+
+        <!-- TradingView Chart -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-chart-area"></i>
+                    S&P 500 Chart
+                </span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="chart-container" id="main-chart">
+                    <!-- TradingView Widget -->
+                    <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
+                        <div id="tradingview_chart" style="height: 100%; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal Entry -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-pen"></i>
+                    Journal Entry
+                </span>
+                <div class="entry-counter" id="entry-counter" style="display: none;">
+                    <i class="fas fa-file-alt"></i>
+                    <span id="entry-count">0</span> entry(ies) ready
+                </div>
+            </div>
+            <div class="card-body">
+                <textarea
+                    class="journal-textarea"
+                    id="journal-input"
+                    placeholder="Type your trading thoughts here... Ramble away! Claude will organize them into a structured journal entry."
+                ></textarea>
+                <div class="button-row">
+                    <button class="btn btn-primary" onclick="processEntry()" id="process-btn">
+                        <i class="fas fa-magic"></i>
+                        Process Entry
+                    </button>
+                    <button class="btn btn-orange" onclick="addToEntry()" id="add-btn">
+                        <i class="fas fa-plus"></i>
+                        Add (AI)
+                    </button>
+                    <button class="btn btn-teal" onclick="quickAdd()" id="quick-add-btn">
+                        <i class="fas fa-bolt"></i>
+                        Quick Add
+                    </button>
+                    <button class="btn btn-success" onclick="saveJournal()" id="save-btn">
+                        <i class="fas fa-save"></i>
+                        Save
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAll()">
+                        <i class="fas fa-trash"></i>
+                        Clear
+                    </button>
+                    <div class="button-row-spacer"></div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="include-market" checked>
+                        Include market data
+                    </label>
+                </div>
+                <div class="button-row" style="margin-top: 0.5rem;">
+                    <button class="btn btn-slate" onclick="loadPreviousEntry()">
+                        <i class="fas fa-history"></i>
+                        Load Previous Entry
+                    </button>
+                </div>
+
+                <!-- Image Upload Area -->
+                <div class="image-upload-area" id="image-upload-area">
+                    <i class="fas fa-image"></i>
+                    <p>Paste (Ctrl+V) or drag & drop images here</p>
+                </div>
+                <div class="image-preview-container" id="image-preview-container"></div>
+
+                <div class="status-message" id="status-message">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview - Now Editable -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-edit"></i>
+                    Formatted Entry (Editable)
+                </span>
+                <button class="btn btn-purple" onclick="viewJournal()">
+                    <i class="fas fa-book-open"></i>
+                    View Journal
+                </button>
+            </div>
+            <div class="card-body">
+                <textarea
+                    class="preview-textarea"
+                    id="preview-content"
+                    placeholder="Processed entry will appear here. You can edit it before saving, including answering reflection questions..."
+                ></textarea>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header">
+                <span class="modal-title">Settings</span>
+                <button class="modal-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Claude API Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-robot"></i>
+                        Claude AI
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Anthropic API Key</label>
+                        <input type="password" class="form-input" id="api-key-input" placeholder="sk-ant-...">
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                            Get your API key from <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color: var(--accent-blue);">console.anthropic.com</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cloudinary Section -->
+                <div class="settings-section">
+                    <div class="settings-section-title">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Image Storage (Cloudinary)
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        Required for image uploads. Free at <a href="https://cloudinary.com" target="_blank" style="color: var(--accent-blue);">cloudinary.com</a>
+                    </p>
+                    <div class="form-group">
+                        <label class="form-label">Cloud Name</label>
+                        <input type="text" class="form-input" id="cloudinary-cloud-name" placeholder="your-cloud-name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">API Key</label>
+                        <input type="text" class="form-input" id="cloudinary-api-key" placeholder="123456789012345">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">API Secret</label>
+                        <input type="password" class="form-input" id="cloudinary-api-secret" placeholder="your-api-secret">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">
+                    <i class="fas fa-check"></i>
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Journal Viewer Modal -->
+    <div class="modal-overlay" id="journal-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <span class="modal-title">
+                    <i class="fas fa-book-open" style="margin-right: 0.5rem;"></i>
+                    Trading Journal
+                </span>
+                <button class="modal-close" onclick="closeJournalModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="journal-viewer" id="journal-viewer">
+                    Loading journal...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Previous Entry Modal -->
+    <div class="modal-overlay" id="entries-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <span class="modal-title">
+                    <i class="fas fa-history" style="margin-right: 0.5rem;"></i>
+                    Load Previous Entry
+                </span>
+                <button class="modal-close" onclick="closeEntriesModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                    Select an entry to continue editing. Your additions will be appended when you save.
+                </p>
+                <div class="entry-list" id="entry-list">
+                    Loading entries...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Widget Scripts -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+    <script>
+        // State
+        let currentEntry = null;
+        let marketData = null;
+        let uploadedImages = [];  // Array of {url, public_id} objects
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            setInterval(updateClock, 1000);
+            refreshMarketData();
+            initCharts();
+            checkApiKey();
+            initImageUpload();
+
+            // Auto-refresh market data every 60 seconds
+            setInterval(refreshMarketData, 60000);
+        });
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'America/New_York'
+            };
+            document.getElementById('clock').textContent = now.toLocaleString('en-US', options) + ' EST';
+        }
+
+        // Market Data
+        async function refreshMarketData() {
+            const btn = document.getElementById('refresh-btn');
+            btn.classList.add('spinning');
+
+            try {
+                const response = await fetch('/api/market-data');
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                marketData = data;
+                updateMarketDisplay(data);
+            } catch (error) {
+                console.error('Failed to fetch market data:', error);
+            } finally {
+                btn.classList.remove('spinning');
+            }
+        }
+
+        function updateMarketDisplay(data) {
+            const grid = document.getElementById('market-grid');
+            const symbols = ['SPY', 'QQQ', 'IWM', 'DIA', 'GLD', 'BTC-USD', 'VIX'];
+
+            grid.innerHTML = symbols.map(sym => {
+                const item = data[sym];
+                if (!item) return '';
+
+                const sign = item.change > 0 ? '+' : '';
+                const direction = item.direction;
+                const extra = sym === 'VIX' ? ` (${item.status})` : '';
+                const displaySym = sym === 'BTC-USD' ? 'BTC' : sym;
+                const pricePrefix = sym === 'VIX' ? '' : '$';
+                const priceFormat = sym === 'BTC-USD' ? item.price.toLocaleString('en-US', {maximumFractionDigits: 0}) : item.price.toFixed(2);
+
+                return `
+                    <div class="market-item">
+                        <div class="market-symbol">${item.name}${extra}</div>
+                        <div class="market-price">${pricePrefix}${priceFormat}</div>
+                        <div class="market-change ${direction}">
+                            <i class="fas fa-caret-${direction === 'up' ? 'up' : 'down'}"></i>
+                            ${sign}${item.change.toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Sentiment
+            if (data.sentiment) {
+                const s = data.sentiment;
+                let badgeClass = 'neutral';
+                if (s.label.includes('BULLISH')) badgeClass = 'bullish';
+                if (s.label.includes('BEARISH')) badgeClass = 'bearish';
+
+                document.getElementById('sentiment-container').innerHTML = `
+                    <div class="sentiment-badge ${badgeClass}">
+                        ${s.icon} ${s.label}
+                    </div>
+                `;
+            }
+
+            // Timestamp
+            if (data.timestamp) {
+                document.getElementById('market-timestamp').textContent = `Updated: ${data.timestamp}`;
+            }
+        }
+
+        // TradingView Charts
+        function initCharts() {
+            // Main SPY Chart
+            new TradingView.widget({
+                "autosize": true,
+                "symbol": "AMEX:SPY",
+                "interval": "5",
+                "timezone": "America/New_York",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#161b22",
+                "enable_publishing": false,
+                "hide_top_toolbar": false,
+                "hide_legend": false,
+                "save_image": false,
+                "container_id": "tradingview_chart",
+                "backgroundColor": "#161b22"
+            });
+        }
+
+        // Process Entry
+        async function processEntry() {
+            const input = document.getElementById('journal-input');
+            const text = input.value.trim();
+
+            if (!text) {
+                showStatus('Please enter some text', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('process-btn');
+            btn.disabled = true;
+            showStatus('Processing with Claude...', 'loading');
+
+            try {
+                const response = await fetch('/api/process-entry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        include_market: document.getElementById('include-market').checked
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showStatus(data.error, 'error');
+                    return;
+                }
+
+                // Store entry data
+                currentEntry = data;
+                currentEntry.images = getImageUrls();
+
+                // Update preview (editable)
+                const preview = document.getElementById('preview-content');
+                const header = `════════════════════════════════════════════════════════════
+TRADING JOURNAL ENTRY
+${data.timestamp}
+${data.sentiment ? `Market Sentiment: ${data.sentiment.icon} ${data.sentiment.label}` : ''}
+════════════════════════════════════════════════════════════
+
+`;
+                // Add image URLs if any
+                let imagesSection = '';
+                if (uploadedImages.length > 0) {
+                    imagesSection = '\n\n── Attached Images ─────────────────────────────────────────\n';
+                    uploadedImages.forEach((img, i) => {
+                        imagesSection += `[Image ${i + 1}]: ${img.url}\n`;
+                    });
+                }
+
+                preview.value = header + data.content + imagesSection;
+
+                // Update counter
+                updateEntryCounter();
+
+                // Clear input
+                input.value = '';
+
+                showStatus('Entry processed! You can edit it below before saving.', 'success');
+
+            } catch (error) {
+                showStatus('Failed to process entry: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Add to existing entry (with AI processing)
+        async function addToEntry() {
+            const input = document.getElementById('journal-input');
+            const text = input.value.trim();
+            const preview = document.getElementById('preview-content');
+
+            if (!text) {
+                showStatus('Please enter some text to add', 'error');
+                return;
+            }
+
+            // If no entry loaded, automatically load the most recent one
+            if (!preview.value.trim()) {
+                showStatus('Loading most recent entry...', 'loading');
+                try {
+                    const response = await fetch('/api/list-entries');
+                    const data = await response.json();
+
+                    if (data.entries && data.entries.length > 0) {
+                        const entry = data.entries[0];  // Most recent
+                        preview.value = entry.content;
+                        currentEntry = {
+                            timestamp: entry.timestamp,
+                            sentiment: entry.sentiment ? { label: entry.sentiment } : null,
+                            content: entry.content
+                        };
+                        updateEntryCounter();
+                    } else {
+                        showStatus('No previous entries found. Use "Process Entry" to create one first.', 'error');
+                        return;
+                    }
+                } catch (error) {
+                    showStatus('Failed to load previous entry: ' + error.message, 'error');
+                    return;
+                }
+            }
+
+            const btn = document.getElementById('add-btn');
+            btn.disabled = true;
+            showStatus('Processing additional thoughts...', 'loading');
+
+            try {
+                const response = await fetch('/api/process-entry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        include_market: false  // Don't include market data for additions
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showStatus(data.error, 'error');
+                    return;
+                }
+
+                // Append the new content to the existing entry
+                const existingContent = preview.value;
+                const newSection = `\n\n────────────────────────────────────────────────────────────
+ADDITIONAL THOUGHTS
+────────────────────────────────────────────────────────────
+
+${data.content}`;
+
+                preview.value = existingContent + newSection;
+
+                // Update the current entry content
+                if (currentEntry) {
+                    currentEntry.content = preview.value;
+                }
+
+                // Clear input
+                input.value = '';
+
+                showStatus('Added to entry! You can continue editing or save.', 'success');
+
+            } catch (error) {
+                showStatus('Failed to add to entry: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Quick Add - append raw text without AI processing
+        async function quickAdd() {
+            const input = document.getElementById('journal-input');
+            const text = input.value.trim();
+            const preview = document.getElementById('preview-content');
+
+            if (!text) {
+                showStatus('Please enter some text to add', 'error');
+                return;
+            }
+
+            // If no entry loaded, automatically load the most recent one
+            if (!preview.value.trim()) {
+                showStatus('Loading most recent entry...', 'loading');
+                try {
+                    const response = await fetch('/api/list-entries');
+                    const data = await response.json();
+
+                    if (data.entries && data.entries.length > 0) {
+                        const entry = data.entries[0];  // Most recent
+                        preview.value = entry.content;
+                        currentEntry = {
+                            timestamp: entry.timestamp,
+                            sentiment: entry.sentiment ? { label: entry.sentiment } : null,
+                            content: entry.content
+                        };
+                        updateEntryCounter();
+                    } else {
+                        showStatus('No previous entries found. Use "Process Entry" to create one first.', 'error');
+                        return;
+                    }
+                } catch (error) {
+                    showStatus('Failed to load previous entry: ' + error.message, 'error');
+                    return;
+                }
+            }
+
+            // Append raw text with a simple separator
+            const existingContent = preview.value;
+            const newSection = `\n\n── Quick Note ──────────────────────────────────────────────
+
+${text}`;
+
+            preview.value = existingContent + newSection;
+
+            // Update the current entry content
+            if (currentEntry) {
+                currentEntry.content = preview.value;
+            }
+
+            // Clear input
+            input.value = '';
+
+            showStatus('Quick note added!', 'success');
+        }
+
+        // Load Previous Entry
+        async function loadPreviousEntry() {
+            document.getElementById('entries-modal').classList.add('show');
+            document.getElementById('entry-list').innerHTML = '<p style="color: var(--text-secondary);">Loading entries...</p>';
+
+            try {
+                const response = await fetch('/api/list-entries');
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('entry-list').innerHTML = `<p style="color: var(--accent-red);">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                if (!data.entries || data.entries.length === 0) {
+                    document.getElementById('entry-list').innerHTML = '<p style="color: var(--text-secondary);">No previous entries found.</p>';
+                    return;
+                }
+
+                // Render entry list
+                document.getElementById('entry-list').innerHTML = data.entries.map((entry, idx) => `
+                    <div class="entry-list-item" onclick="selectEntry(${idx})">
+                        <div class="entry-list-date">${entry.timestamp || 'Unknown date'}</div>
+                        ${entry.sentiment ? `<div class="entry-list-sentiment">${entry.sentiment}</div>` : ''}
+                        <div class="entry-list-preview">${entry.preview || 'No preview available'}</div>
+                    </div>
+                `).join('');
+
+                // Store entries for selection
+                window.loadedEntries = data.entries;
+
+            } catch (error) {
+                document.getElementById('entry-list').innerHTML = `<p style="color: var(--accent-red);">Failed to load entries: ${error.message}</p>`;
+            }
+        }
+
+        // Select an entry to continue editing
+        function selectEntry(index) {
+            const entry = window.loadedEntries[index];
+            if (!entry) return;
+
+            // Load entry into preview
+            const preview = document.getElementById('preview-content');
+            preview.value = entry.content;
+
+            // Set current entry
+            currentEntry = {
+                timestamp: entry.timestamp,
+                sentiment: entry.sentiment ? { label: entry.sentiment } : null,
+                content: entry.content
+            };
+
+            updateEntryCounter();
+            closeEntriesModal();
+            showStatus('Entry loaded! Add to it or edit directly.', 'success');
+        }
+
+        function closeEntriesModal() {
+            document.getElementById('entries-modal').classList.remove('show');
+        }
+
+        // Save Journal
+        async function saveJournal() {
+            const previewContent = document.getElementById('preview-content').value.trim();
+
+            if (!previewContent) {
+                showStatus('No entry to save', 'error');
+                return;
+            }
+
+            // Update the current entry content with any edits
+            if (currentEntry) {
+                // Extract the edited content (after the header)
+                const headerEnd = previewContent.indexOf('════════════════════════════════════════════════════════════\n\n');
+                if (headerEnd !== -1) {
+                    currentEntry.content = previewContent.substring(headerEnd + 62);
+                } else {
+                    currentEntry.content = previewContent;
+                }
+            } else {
+                // Create a new entry from scratch if somehow we don't have one
+                currentEntry = {
+                    timestamp: new Date().toLocaleString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZone: 'America/New_York'
+                    }) + ' EST',
+                    sentiment: marketData?.sentiment || {},
+                    content: previewContent
+                };
+            }
+
+            showStatus('Saving to journal...', 'loading');
+
+            try {
+                const response = await fetch('/api/save-journal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entries: [currentEntry] })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showStatus(data.error, 'error');
+                    return;
+                }
+
+                currentEntry = null;
+                updateEntryCounter();
+                document.getElementById('preview-content').value = '';
+
+                showStatus(`Saved to journal!`, 'success');
+
+            } catch (error) {
+                showStatus('Failed to save: ' + error.message, 'error');
+            }
+        }
+
+        // View Journal
+        async function viewJournal() {
+            document.getElementById('journal-modal').classList.add('show');
+            document.getElementById('journal-viewer').textContent = 'Loading journal...';
+
+            try {
+                const response = await fetch('/api/view-journal');
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('journal-viewer').textContent = 'Error: ' + data.error;
+                    return;
+                }
+
+                if (data.content) {
+                    document.getElementById('journal-viewer').textContent = data.content;
+                } else {
+                    document.getElementById('journal-viewer').textContent = 'No journal entries found.';
+                }
+            } catch (error) {
+                document.getElementById('journal-viewer').textContent = 'Failed to load journal: ' + error.message;
+            }
+        }
+
+        function closeJournalModal() {
+            document.getElementById('journal-modal').classList.remove('show');
+        }
+
+        // Clear
+        function clearAll() {
+            document.getElementById('journal-input').value = '';
+            document.getElementById('preview-content').value = '';
+            currentEntry = null;
+            clearImages();
+            updateEntryCounter();
+            hideStatus();
+        }
+
+        // Entry Counter
+        function updateEntryCounter() {
+            const counter = document.getElementById('entry-counter');
+
+            if (currentEntry) {
+                counter.style.display = 'flex';
+                document.getElementById('entry-count').textContent = '1';
+            } else {
+                counter.style.display = 'none';
+            }
+        }
+
+        // Status Messages
+        function showStatus(message, type) {
+            const status = document.getElementById('status-message');
+            const icon = status.querySelector('i');
+            const text = status.querySelector('span');
+
+            status.className = 'status-message show ' + type;
+            text.textContent = message;
+
+            if (type === 'loading') {
+                icon.className = 'fas fa-spinner fa-spin';
+            } else if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle';
+            }
+
+            if (type !== 'loading') {
+                setTimeout(hideStatus, 5000);
+            }
+        }
+
+        function hideStatus() {
+            document.getElementById('status-message').classList.remove('show');
+        }
+
+        // Image Upload Functions
+        function initImageUpload() {
+            const uploadArea = document.getElementById('image-upload-area');
+
+            // Paste handler (global) - but not when in text inputs
+            document.addEventListener('paste', (e) => {
+                // Don't intercept paste in text areas
+                const activeEl = document.activeElement;
+                if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
+                    // Check if clipboard has image
+                    const items = e.clipboardData?.items;
+                    let hasImage = false;
+                    if (items) {
+                        for (const item of items) {
+                            if (item.type.startsWith('image/')) {
+                                hasImage = true;
+                                break;
+                            }
+                        }
+                    }
+                    // Only handle if it's an image (let text paste through)
+                    if (hasImage) {
+                        handlePaste(e);
+                    }
+                    return;
+                }
+                handlePaste(e);
+            });
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                for (const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        uploadImage(file);
+                    }
+                }
+            });
+
+            // Click to upload - use a hidden file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.multiple = true;
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+
+            fileInput.addEventListener('change', (e) => {
+                for (const file of e.target.files) {
+                    uploadImage(file);
+                }
+                fileInput.value = ''; // Reset for next use
+            });
+
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+        }
+
+        function handlePaste(e) {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            let hasImage = false;
+            for (const item of items) {
+                if (item.type.startsWith('image/')) {
+                    hasImage = true;
+                    e.preventDefault();
+                    const file = item.getAsFile();
+                    if (file) {
+                        uploadImage(file);
+                    } else {
+                        showStatus('Could not read image from clipboard', 'error');
+                    }
+                }
+            }
+
+            // Also check for files in dataTransfer
+            if (!hasImage && e.clipboardData?.files?.length > 0) {
+                for (const file of e.clipboardData.files) {
+                    if (file.type.startsWith('image/')) {
+                        e.preventDefault();
+                        uploadImage(file);
+                    }
+                }
+            }
+        }
+
+        async function uploadImage(file) {
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64 = e.target.result;
+
+                // Add temporary preview
+                const previewId = 'img-' + Date.now();
+                addImagePreview(previewId, base64, true);
+
+                try {
+                    const response = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: base64 })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        removeImagePreview(previewId);
+                        showStatus('Image upload failed: ' + data.error, 'error');
+                        return;
+                    }
+
+                    // Update preview with uploaded URL
+                    uploadedImages.push({
+                        url: data.url,
+                        public_id: data.public_id,
+                        previewId: previewId
+                    });
+
+                    // Update preview to show it's uploaded
+                    const preview = document.getElementById(previewId);
+                    if (preview) {
+                        preview.classList.remove('uploading');
+                        preview.querySelector('img').src = data.url;
+                    }
+
+                    showStatus('Image uploaded!', 'success');
+
+                } catch (error) {
+                    removeImagePreview(previewId);
+                    showStatus('Image upload failed: ' + error.message, 'error');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addImagePreview(id, src, uploading = false) {
+            const container = document.getElementById('image-preview-container');
+            const div = document.createElement('div');
+            div.className = 'image-preview' + (uploading ? ' uploading' : '');
+            div.id = id;
+            div.innerHTML = `
+                <img src="${src}" alt="Preview">
+                <button class="remove-image" onclick="removeImage('${id}')">&times;</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeImagePreview(id) {
+            const preview = document.getElementById(id);
+            if (preview) preview.remove();
+        }
+
+        function removeImage(previewId) {
+            removeImagePreview(previewId);
+            uploadedImages = uploadedImages.filter(img => img.previewId !== previewId);
+        }
+
+        function getImageUrls() {
+            return uploadedImages.map(img => img.url);
+        }
+
+        function clearImages() {
+            uploadedImages = [];
+            document.getElementById('image-preview-container').innerHTML = '';
+        }
+
+        // Settings Modal
+        function openSettings() {
+            document.getElementById('settings-modal').classList.add('show');
+            loadSettingsValues();
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.remove('show');
+        }
+
+        async function loadSettingsValues() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+
+                // Pre-fill cloudinary cloud name if saved
+                if (data.cloudinary_cloud_name) {
+                    document.getElementById('cloudinary-cloud-name').value = data.cloudinary_cloud_name;
+                }
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+            }
+        }
+
+        async function checkApiKey() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+
+                if (!data.has_key) {
+                    openSettings();
+                }
+            } catch (error) {
+                console.error('Failed to check API key:', error);
+            }
+        }
+
+        async function saveSettings() {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            const cloudName = document.getElementById('cloudinary-cloud-name').value.trim();
+            const cloudApiKey = document.getElementById('cloudinary-api-key').value.trim();
+            const cloudApiSecret = document.getElementById('cloudinary-api-secret').value.trim();
+
+            const settings = {};
+
+            // Only update API key if user entered a new one
+            if (apiKey) {
+                settings.api_key = apiKey;
+            }
+
+            // Only save Cloudinary settings if all three are provided
+            if (cloudName && cloudApiKey && cloudApiSecret) {
+                settings.cloudinary_cloud_name = cloudName;
+                settings.cloudinary_api_key = cloudApiKey;
+                settings.cloudinary_api_secret = cloudApiSecret;
+            } else if (cloudName || cloudApiKey || cloudApiSecret) {
+                alert('Please fill in all Cloudinary fields or leave them all empty');
+                return;
+            }
+
+            // If no settings to save and no API key, warn user
+            if (Object.keys(settings).length === 0) {
+                alert('No changes to save');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                closeSettings();
+                showStatus('Settings saved successfully!', 'success');
+
+            } catch (error) {
+                alert('Failed to save settings: ' + error.message);
+            }
+        }
+
+        // Close modals on outside click
+        document.getElementById('settings-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeSettings();
+            }
+        });
+
+        document.getElementById('journal-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeJournalModal();
+            }
+        });
+
+        document.getElementById('entries-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeEntriesModal();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSettings();
+                closeJournalModal();
+                closeEntriesModal();
+            }
+            if (e.ctrlKey && e.key === 'Enter') {
+                processEntry();
+            }
+        });
+    </script>
+</body>
+</html>

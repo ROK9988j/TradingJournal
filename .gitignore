@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# Environment
+.env
+*.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local config (contains API keys)
+.trading_journal_web_config
+
+# Journal data (local)
+journal_entries.json
+*.docx
+
+# OS
+.DS_Store
+Thumbs.db
