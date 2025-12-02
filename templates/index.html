@@ -1341,12 +1341,22 @@ ${text}`;
                     return;
                 }
 
-                // Render entry list
+                // Render entry list with edit/delete buttons
                 document.getElementById('entry-list').innerHTML = data.entries.map((entry, idx) => `
-                    <div class="entry-list-item" onclick="selectEntry(${idx})">
-                        <div class="entry-list-date">${entry.timestamp || 'Unknown date'}</div>
-                        ${entry.sentiment ? `<div class="entry-list-sentiment">${entry.sentiment}</div>` : ''}
-                        <div class="entry-list-preview">${entry.preview || 'No preview available'}</div>
+                    <div class="entry-list-item">
+                        <div style="flex: 1; cursor: pointer;" onclick="selectEntry(${idx})">
+                            <div class="entry-list-date">${entry.timestamp || 'Unknown date'}</div>
+                            ${entry.sentiment ? `<div class="entry-list-sentiment">${entry.sentiment}</div>` : ''}
+                            <div class="entry-list-preview">${entry.preview || 'No preview available'}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                            <button onclick="editEntry(${idx})" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--accent-blue);" title="Edit this entry">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteEntry(${idx}, event)" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: #dc3545;" title="Delete this entry">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 `).join('');
 
@@ -1377,6 +1387,46 @@ ${text}`;
             updateEntryCounter();
             closeEntriesModal();
             showStatus('Entry loaded! Add to it or edit directly.', 'success');
+        }
+
+        // Edit entry (same as select but with a different message)
+        function editEntry(index) {
+            selectEntry(index);
+            showStatus('Entry loaded for editing. Make changes and Save to Journal.', 'success');
+        }
+
+        // Delete a specific entry
+        async function deleteEntry(index, event) {
+            event.stopPropagation(); // Prevent triggering selectEntry
+
+            const entry = window.loadedEntries[index];
+            if (!entry) return;
+
+            const confirmMsg = `Delete entry from "${entry.timestamp || 'Unknown date'}"?\n\nThis cannot be undone.`;
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                // The API expects the original index in the journal (entries are reversed for display)
+                // Since list is reversed, we need to convert: displayIndex -> originalIndex
+                const originalIndex = window.loadedEntries.length - 1 - index;
+
+                const response = await fetch('/api/delete-entry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index: originalIndex })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showStatus('Entry deleted', 'success');
+                    // Refresh the entry list
+                    openEntriesModal();
+                } else {
+                    showStatus(data.error || 'Failed to delete entry', 'error');
+                }
+            } catch (error) {
+                showStatus('Failed to delete: ' + error.message, 'error');
+            }
         }
 
         function closeEntriesModal() {
