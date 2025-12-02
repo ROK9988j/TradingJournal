@@ -230,11 +230,14 @@ def get_market_data():
         for sym, name in symbols.items():
             try:
                 t = yf.Ticker(sym)
-                hist = t.history(period='1d', interval='1m')
-                if len(hist):
+                # Use 5 day history with daily interval for reliable close-to-close data
+                hist = t.history(period='5d', interval='1d')
+                if len(hist) >= 2:
+                    # Today's close (or most recent)
                     curr = float(hist['Close'].iloc[-1])
-                    op = float(hist['Open'].iloc[0])
-                    ch = ((curr - op) / op) * 100
+                    # Previous day's close
+                    prev_close = float(hist['Close'].iloc[-2])
+                    ch = ((curr - prev_close) / prev_close) * 100
                     data[sym] = {
                         'name': name,
                         'price': round(curr, 2),
