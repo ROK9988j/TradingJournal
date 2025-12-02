@@ -520,11 +520,18 @@ def api_save_journal():
 def api_settings():
     if request.method == 'GET':
         config = load_config()
+
+        # Check if API key came from environment variable
+        api_key_from_env = bool(os.environ.get('ANTHROPIC_API_KEY'))
+
         return jsonify({
             'has_key': bool(config.get('api_key')),
             'key_preview': config.get('api_key', '')[:10] + '...' if config.get('api_key') else '',
+            'key_from_env': api_key_from_env,
+            'is_cloud': IS_CLOUD,
             'has_cloudinary': bool(config.get('cloudinary_cloud_name') and config.get('cloudinary_api_key') and config.get('cloudinary_api_secret')),
-            'cloudinary_cloud_name': config.get('cloudinary_cloud_name', '')
+            'cloudinary_cloud_name': config.get('cloudinary_cloud_name', ''),
+            'cloudinary_from_env': bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))
         })
     else:
         data = request.json

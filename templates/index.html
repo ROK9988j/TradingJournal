@@ -900,6 +900,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Anthropic API Key</label>
+                        <div id="api-key-status" style="display: none; padding: 0.5rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.85rem;"></div>
                         <input type="password" class="form-input" id="api-key-input" placeholder="sk-ant-...">
                         <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">
                             Get your API key from <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color: var(--accent-blue);">console.anthropic.com</a>
@@ -1791,9 +1792,45 @@ ${text}`;
                 const response = await fetch('/api/settings');
                 const data = await response.json();
 
+                const statusDiv = document.getElementById('api-key-status');
+                const apiKeyInput = document.getElementById('api-key-input');
+
+                // Show API key status
+                if (data.has_key) {
+                    if (data.key_from_env || data.is_cloud) {
+                        statusDiv.style.display = 'block';
+                        statusDiv.style.background = 'rgba(76, 175, 80, 0.2)';
+                        statusDiv.style.border = '1px solid rgba(76, 175, 80, 0.5)';
+                        statusDiv.style.color = '#4CAF50';
+                        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> API key configured via environment variable (Render)';
+                        apiKeyInput.placeholder = 'Configured in Render environment';
+                        apiKeyInput.disabled = true;
+                    } else {
+                        statusDiv.style.display = 'block';
+                        statusDiv.style.background = 'rgba(76, 175, 80, 0.2)';
+                        statusDiv.style.border = '1px solid rgba(76, 175, 80, 0.5)';
+                        statusDiv.style.color = '#4CAF50';
+                        statusDiv.innerHTML = `<i class="fas fa-check-circle"></i> API key saved (${data.key_preview})`;
+                    }
+                } else {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.background = 'rgba(244, 67, 54, 0.2)';
+                    statusDiv.style.border = '1px solid rgba(244, 67, 54, 0.5)';
+                    statusDiv.style.color = '#ff6b6b';
+                    statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> No API key configured';
+                }
+
                 // Pre-fill cloudinary cloud name if saved
                 if (data.cloudinary_cloud_name) {
                     document.getElementById('cloudinary-cloud-name').value = data.cloudinary_cloud_name;
+                }
+
+                // Disable cloudinary inputs if from env
+                if (data.cloudinary_from_env) {
+                    document.getElementById('cloudinary-cloud-name').disabled = true;
+                    document.getElementById('cloudinary-api-key').disabled = true;
+                    document.getElementById('cloudinary-api-secret').disabled = true;
+                    document.getElementById('cloudinary-cloud-name').placeholder = 'Configured in Render';
                 }
             } catch (error) {
                 console.error('Failed to load settings:', error);
