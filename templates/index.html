@@ -1046,7 +1046,7 @@
 
         function updateMarketDisplay(data) {
             const grid = document.getElementById('market-grid');
-            const symbols = ['SPY', 'QQQ', 'IWM', 'DIA', 'GLD', 'BTC-USD', 'VIX'];
+            const symbols = ['^GSPC', '^NDX', '^RUT', '^DJI', 'VIX'];
 
             grid.innerHTML = symbols.map(sym => {
                 const item = data[sym];
@@ -1093,10 +1093,10 @@
 
         // TradingView Charts
         function initCharts() {
-            // Main SPY Chart
+            // Main SPX Chart (5-min)
             new TradingView.widget({
                 "autosize": true,
-                "symbol": "AMEX:SPY",
+                "symbol": "SP:SPX",
                 "interval": "5",
                 "timezone": "America/New_York",
                 "theme": "dark",
