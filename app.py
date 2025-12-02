@@ -219,12 +219,10 @@ def get_market_data():
     try:
         data = {}
         symbols = {
-            'SPY': 'S&P 500',
-            'QQQ': 'Nasdaq',
-            'IWM': 'Russell 2000',
-            'DIA': 'Dow Jones',
-            'GLD': 'Gold',
-            'BTC-USD': 'Bitcoin',
+            '^GSPC': 'SPX',
+            '^NDX': 'NDX',
+            '^RUT': 'RUT',
+            '^DJI': 'DJI',
         }
 
         for sym, name in symbols.items():
@@ -265,8 +263,8 @@ def get_market_data():
         except:
             pass
 
-        # Calculate sentiment
-        spy_ch = data.get('SPY', {}).get('change', 0)
+        # Calculate sentiment based on SPX
+        spy_ch = data.get('^GSPC', {}).get('change', 0)
         vix = data.get('VIX', {}).get('price', 20)
 
         score = 0
@@ -303,7 +301,7 @@ def format_market_for_prompt(data):
         return ""
 
     lines = ["Current Market Conditions:"]
-    for sym in ['SPY', 'QQQ', 'IWM', 'DIA', 'GLD', 'BTC-USD']:
+    for sym in ['^GSPC', '^NDX', '^RUT', '^DJI']:
         if sym in data:
             d = data[sym]
             sign = '+' if d['change'] > 0 else ''
