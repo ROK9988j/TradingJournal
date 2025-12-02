@@ -223,6 +223,9 @@ def get_market_data():
             '^NDX': 'NDX',
             '^RUT': 'RUT',
             '^DJI': 'DJI',
+            'GLD': 'Gold',
+            'BTC-USD': 'Bitcoin',
+            'TLT': 'TLT',
         }
 
         for sym, name in symbols.items():
@@ -301,7 +304,7 @@ def format_market_for_prompt(data):
         return ""
 
     lines = ["Current Market Conditions:"]
-    for sym in ['^GSPC', '^NDX', '^RUT', '^DJI']:
+    for sym in ['^GSPC', '^NDX', '^RUT', '^DJI', 'GLD', 'BTC-USD', 'TLT', 'VIX']:
         if sym in data:
             d = data[sym]
             sign = '+' if d['change'] > 0 else ''

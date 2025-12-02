@@ -1053,7 +1053,8 @@
 
         function updateMarketDisplay(data) {
             const grid = document.getElementById('market-grid');
-            const symbols = ['^GSPC', '^NDX', '^RUT', '^DJI', 'VIX'];
+            // Row 1: Indices, Row 2: Commodities/Bonds
+            const symbols = ['^GSPC', '^NDX', '^RUT', '^DJI', 'GLD', 'BTC-USD', 'TLT', 'VIX'];
 
             grid.innerHTML = symbols.map(sym => {
                 const item = data[sym];
@@ -1062,7 +1063,6 @@
                 const sign = item.change > 0 ? '+' : '';
                 const direction = item.direction;
                 const extra = sym === 'VIX' ? ` (${item.status})` : '';
-                const displaySym = sym === 'BTC-USD' ? 'BTC' : sym;
                 const pricePrefix = sym === 'VIX' ? '' : '$';
                 const priceFormat = sym === 'BTC-USD' ? item.price.toLocaleString('en-US', {maximumFractionDigits: 0}) : item.price.toFixed(2);
 
