@@ -785,6 +785,10 @@
                     <i class="fas fa-chart-area"></i>
                     S&P 500 Chart
                 </span>
+                <button class="btn" onclick="captureChart()" id="snapshot-btn" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                    <i class="fas fa-camera"></i>
+                    Snapshot
+                </button>
             </div>
             <div class="card-body" style="padding: 0;">
                 <div class="chart-container" id="main-chart">
@@ -985,6 +989,7 @@
 
     <!-- TradingView Widget Scripts -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <script>
         // State
@@ -1775,6 +1780,52 @@ ${text}`;
         function clearImages() {
             uploadedImages = [];
             document.getElementById('image-preview-container').innerHTML = '';
+        }
+
+        // Chart Snapshot Function
+        async function captureChart() {
+            const btn = document.getElementById('snapshot-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Capturing...';
+            btn.disabled = true;
+
+            try {
+                const chartContainer = document.getElementById('main-chart');
+
+                // Use html2canvas to capture the chart
+                const canvas = await html2canvas(chartContainer, {
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#161b22',
+                    scale: 2
+                });
+
+                // Convert to blob
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        showStatus('Failed to capture chart', 'error');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // Create a File object from the blob
+                    const file = new File([blob], 'spx-chart-' + Date.now() + '.png', { type: 'image/png' });
+
+                    // Use existing upload function
+                    await uploadImage(file);
+
+                    showStatus('Chart snapshot added to journal!', 'success');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 'image/png', 0.95);
+
+            } catch (error) {
+                console.error('Chart capture error:', error);
+                showStatus('Failed to capture chart: ' + error.message, 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         // Settings Modal
