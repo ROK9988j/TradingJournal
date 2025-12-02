@@ -4,7 +4,8 @@
 # Cloud-ready deployment
 # ============================================================================
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from functools import wraps
 from datetime import datetime, timezone, timedelta
 import os
 import json
@@ -34,6 +35,7 @@ import base64
 import io
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # ============================================================================
 # Configuration - Cloud Ready
@@ -41,6 +43,28 @@ app = Flask(__name__)
 
 # Detect if running in cloud (no local file system access)
 IS_CLOUD = os.environ.get('IS_CLOUD', 'false').lower() == 'true'
+
+# Password protection (set APP_PASSWORD env var to enable)
+APP_PASSWORD = os.environ.get('APP_PASSWORD', '')
+
+# ============================================================================
+# Authentication
+# ============================================================================
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # If no password set, allow access
+        if not APP_PASSWORD:
+            return f(*args, **kwargs)
+        # Check if logged in
+        if not session.get('authenticated'):
+            # For API calls, return 401
+            if request.path.startswith('/api/'):
+                return jsonify({'error': 'Authentication required'}), 401
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Local paths (used when running locally)
 JOURNAL_PATH = os.environ.get('JOURNAL_PATH', r"D:\OneDrive - Dick Koch LLC\Trading Journal.docx")
@@ -297,11 +321,28 @@ def format_market_for_prompt(data):
 # Routes
 # ============================================================================
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if password == APP_PASSWORD:
+            session['authenticated'] = True
+            return redirect(url_for('index'))
+        return render_template('login.html', error='Invalid password')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('authenticated', None)
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 @app.route('/api/market-data')
+@login_required
 def api_market_data():
     data = get_market_data()
     if data:
@@ -309,6 +350,7 @@ def api_market_data():
     return jsonify({'error': 'Could not fetch market data'}), 500
 
 @app.route('/api/process-entry', methods=['POST'])
+@login_required
 def api_process_entry():
     try:
         data = request.json
@@ -361,6 +403,7 @@ def api_process_entry():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/save-journal', methods=['POST'])
+@login_required
 def api_save_journal():
     try:
         data = request.json
@@ -470,6 +513,7 @@ def api_save_journal():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/settings', methods=['GET', 'POST'])
+@login_required
 def api_settings():
     if request.method == 'GET':
         config = load_config()
@@ -497,6 +541,7 @@ def api_settings():
         return jsonify({'error': 'Could not save settings'}), 500
 
 @app.route('/api/upload-image', methods=['POST'])
+@login_required
 def api_upload_image():
     """Upload an image to Cloudinary"""
     try:
@@ -540,6 +585,7 @@ def api_upload_image():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/view-journal')
+@login_required
 def api_view_journal():
     try:
         # Cloud mode: read from JSON
@@ -586,6 +632,7 @@ def api_view_journal():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/list-entries')
+@login_required
 def api_list_entries():
     """List the last 10 journal entries with previews"""
     try:
@@ -685,6 +732,7 @@ def api_list_entries():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/update-entry', methods=['POST'])
+@login_required
 def api_update_entry():
     """Update an existing entry in the journal"""
     try:
