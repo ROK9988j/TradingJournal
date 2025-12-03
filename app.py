@@ -44,25 +44,89 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-producti
 # Detect if running in cloud (no local file system access)
 IS_CLOUD = os.environ.get('IS_CLOUD', 'false').lower() == 'true'
 
-# Password protection (set APP_PASSWORD env var to enable)
+# Password protection (set APP_PASSWORD env var to enable) - legacy single-user mode
 APP_PASSWORD = os.environ.get('APP_PASSWORD', '')
 
+# Multi-user mode: invite code for registration
+INVITE_CODE = os.environ.get('INVITE_CODE', '')
+
+# Users database path
+USERS_DB_PATH = os.path.join(os.path.dirname(__file__), 'users.json')
+
 # ============================================================================
-# Authentication
+# Authentication & User Management
 # ============================================================================
+
+import hashlib
+
+def hash_password(password):
+    """Simple password hashing"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def load_users():
+    """Load users database"""
+    if os.path.exists(USERS_DB_PATH):
+        try:
+            with open(USERS_DB_PATH, 'r') as f:
+                return json.load(f)
+        except:
+            pass
+    return {}
+
+def save_users(users):
+    """Save users database"""
+    with open(USERS_DB_PATH, 'w') as f:
+        json.dump(users, f, indent=2)
+
+def create_user(username, password):
+    """Create a new user"""
+    users = load_users()
+    if username.lower() in users:
+        return False, "Username already exists"
+    users[username.lower()] = {
+        'username': username,
+        'password_hash': hash_password(password),
+        'created': datetime.now().isoformat()
+    }
+    save_users(users)
+    return True, "Account created"
+
+def verify_user(username, password):
+    """Verify user credentials"""
+    users = load_users()
+    user = users.get(username.lower())
+    if user and user['password_hash'] == hash_password(password):
+        return True, user['username']
+    return False, None
+
+def get_current_user():
+    """Get current logged-in username"""
+    return session.get('username', 'default')
+
+def is_multi_user_mode():
+    """Check if multi-user mode is enabled (invite code is set)"""
+    return bool(INVITE_CODE)
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # If no password set, allow access
-        if not APP_PASSWORD:
+        # Multi-user mode (invite code set)
+        if is_multi_user_mode():
+            if not session.get('authenticated') or not session.get('username'):
+                if request.path.startswith('/api/'):
+                    return jsonify({'error': 'Authentication required'}), 401
+                return redirect(url_for('login'))
             return f(*args, **kwargs)
-        # Check if logged in
-        if not session.get('authenticated'):
-            # For API calls, return 401
-            if request.path.startswith('/api/'):
-                return jsonify({'error': 'Authentication required'}), 401
-            return redirect(url_for('login'))
+
+        # Legacy single-user mode (APP_PASSWORD)
+        if APP_PASSWORD:
+            if not session.get('authenticated'):
+                if request.path.startswith('/api/'):
+                    return jsonify({'error': 'Authentication required'}), 401
+                return redirect(url_for('login'))
+            return f(*args, **kwargs)
+
+        # No auth required
         return f(*args, **kwargs)
     return decorated_function
 
@@ -183,34 +247,46 @@ def configure_cloudinary():
     return False
 
 # ============================================================================
-# Cloud Journal Storage (JSON-based)
+# Cloud Journal Storage (JSON-based, user-specific)
 # ============================================================================
 
-def load_cloud_journal():
-    """Load journal entries from JSON file (cloud mode)"""
-    if os.path.exists(CLOUD_JOURNAL_PATH):
+def get_user_journal_path(username=None):
+    """Get the journal path for a specific user"""
+    if username is None:
+        username = get_current_user()
+    # Sanitize username for filename
+    safe_username = "".join(c for c in username if c.isalnum() or c in '-_').lower()
+    if not safe_username:
+        safe_username = "default"
+    return os.path.join(os.path.dirname(__file__), f'journal_{safe_username}.json')
+
+def load_cloud_journal(username=None):
+    """Load journal entries from JSON file (cloud mode, user-specific)"""
+    journal_path = get_user_journal_path(username)
+    if os.path.exists(journal_path):
         try:
-            with open(CLOUD_JOURNAL_PATH, 'r') as f:
+            with open(journal_path, 'r') as f:
                 return json.load(f)
         except:
             return {"entries": []}
     return {"entries": []}
 
-def save_cloud_journal(data):
-    """Save journal entries to JSON file (cloud mode)"""
+def save_cloud_journal(data, username=None):
+    """Save journal entries to JSON file (cloud mode, user-specific)"""
+    journal_path = get_user_journal_path(username)
     try:
-        with open(CLOUD_JOURNAL_PATH, 'w') as f:
+        with open(journal_path, 'w') as f:
             json.dump(data, f, indent=2)
         return True
     except Exception as e:
         print(f"Error saving cloud journal: {e}")
         return False
 
-def add_cloud_entry(entry):
+def add_cloud_entry(entry, username=None):
     """Add a new entry to the cloud journal"""
-    journal = load_cloud_journal()
+    journal = load_cloud_journal(username)
     journal["entries"].append(entry)
-    return save_cloud_journal(journal)
+    return save_cloud_journal(journal, username)
 
 def get_market_data():
     if yf is None:
@@ -328,16 +404,72 @@ def format_market_for_prompt(data):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        # Multi-user mode
+        if is_multi_user_mode():
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')
+            success, display_name = verify_user(username, password)
+            if success:
+                session['authenticated'] = True
+                session['username'] = display_name
+                return redirect(url_for('index'))
+            return render_template('login.html', error='Invalid username or password', multi_user=True)
+
+        # Legacy single-user mode
         password = request.form.get('password', '')
         if password == APP_PASSWORD:
             session['authenticated'] = True
+            session['username'] = 'default'
             return redirect(url_for('index'))
-        return render_template('login.html', error='Invalid password')
-    return render_template('login.html')
+        return render_template('login.html', error='Invalid password', multi_user=False)
+
+    return render_template('login.html', multi_user=is_multi_user_mode())
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    # Only allow registration in multi-user mode
+    if not is_multi_user_mode():
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        invite_code = request.form.get('invite_code', '')
+
+        # Validate invite code
+        if invite_code != INVITE_CODE:
+            return render_template('register.html', error='Invalid invite code')
+
+        # Validate username
+        if not username or len(username) < 3:
+            return render_template('register.html', error='Username must be at least 3 characters')
+
+        if not username.replace('_', '').replace('-', '').isalnum():
+            return render_template('register.html', error='Username can only contain letters, numbers, - and _')
+
+        # Validate password
+        if not password or len(password) < 4:
+            return render_template('register.html', error='Password must be at least 4 characters')
+
+        if password != confirm_password:
+            return render_template('register.html', error='Passwords do not match')
+
+        # Create user
+        success, message = create_user(username, password)
+        if success:
+            # Auto-login after registration
+            session['authenticated'] = True
+            session['username'] = username
+            return redirect(url_for('index'))
+        return render_template('register.html', error=message)
+
+    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
     session.pop('authenticated', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
 
 @app.route('/')

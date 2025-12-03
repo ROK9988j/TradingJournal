@@ -23,7 +23,11 @@ env/
 
 # Journal data (local)
 journal_entries.json
+journal_*.json
 *.docx
+
+# User database (contains password hashes)
+users.json
 
 # OS
 .DS_Store

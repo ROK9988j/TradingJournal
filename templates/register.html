@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Journal - Login</title>
+    <title>Trading Journal - Register</title>
     <style>
         * {
             margin: 0;
@@ -18,7 +18,7 @@
             align-items: center;
             justify-content: center;
         }
-        .login-container {
+        .register-container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -104,55 +104,63 @@
             font-size: 48px;
             margin-bottom: 20px;
         }
-        .register-link {
+        .login-link {
             text-align: center;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .register-link a {
+        .login-link a {
             color: #58a6ff;
             text-decoration: none;
             font-size: 14px;
         }
-        .register-link a:hover {
+        .login-link a:hover {
             text-decoration: underline;
+        }
+        .hint {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="register-container">
         <div class="icon">📊</div>
-        <h1>Trading Journal</h1>
-        {% if multi_user %}
-        <p class="subtitle">Sign in to your account</p>
-        {% else %}
-        <p class="subtitle">Enter password to continue</p>
-        {% endif %}
+        <h1>Create Account</h1>
+        <p class="subtitle">Join the Trading Journal</p>
 
         {% if error %}
         <div class="error">{{ error }}</div>
         {% endif %}
 
         <form method="POST">
-            {% if multi_user %}
+            <div class="form-group">
+                <label for="invite_code">Invite Code</label>
+                <input type="text" id="invite_code" name="invite_code" placeholder="Enter invite code" required>
+                <p class="hint">Required to create an account</p>
+            </div>
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter your username" autofocus required>
+                <input type="text" id="username" name="username" placeholder="Choose a username" required>
+                <p class="hint">At least 3 characters, letters and numbers only</p>
             </div>
-            {% endif %}
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" {% if not multi_user %}autofocus{% endif %} required>
+                <input type="password" id="password" name="password" placeholder="Choose a password" required>
+                <p class="hint">At least 4 characters</p>
             </div>
-            <button type="submit">Login</button>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+            </div>
+            <button type="submit">Create Account</button>
         </form>
 
-        {% if multi_user %}
-        <div class="register-link">
-            Don't have an account? <a href="/register">Create one</a>
+        <div class="login-link">
+            Already have an account? <a href="/login">Sign in</a>
         </div>
-        {% endif %}
     </div>
 </body>
 </html>
