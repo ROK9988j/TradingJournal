@@ -899,57 +899,6 @@ def api_list_entries():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/update-entry', methods=['POST'])
-@login_required
-def api_update_entry():
-    """Update an existing entry in the journal"""
-    try:
-        data = request.json
-        original_timestamp = data.get('original_timestamp', '')
-        new_content = data.get('content', '')
-
-        if not original_timestamp or not new_content:
-            return jsonify({'error': 'Missing timestamp or content'}), 400
-
-        if Document is None:
-            return jsonify({'error': 'python-docx not installed'}), 500
-
-        if not os.path.exists(JOURNAL_PATH):
-            return jsonify({'error': 'Journal file not found'}), 404
-
-        doc = Document(JOURNAL_PATH)
-
-        # Find and update the entry
-        in_target_entry = False
-        entry_start_idx = None
-        entry_end_idx = None
-
-        for i, para in enumerate(doc.paragraphs):
-            text = para.text.strip()
-
-            if text == 'TRADING JOURNAL ENTRY':
-                if in_target_entry:
-                    entry_end_idx = i
-                    break
-                entry_start_idx = i
-
-            if entry_start_idx is not None and original_timestamp in text:
-                in_target_entry = True
-
-        if not in_target_entry:
-            return jsonify({'error': 'Entry not found'}), 404
-
-        # For now, we'll append updates rather than modifying in place
-        # This is safer and preserves history
-        # The new content will be saved as a new entry when user clicks Save
-
-        return jsonify({'success': True, 'message': 'Entry loaded for editing'})
-
-    except PermissionError:
-        return jsonify({'error': 'Journal file is open in another program'}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/api/delete-entry', methods=['POST'])
 @login_required
 def api_delete_entry():
