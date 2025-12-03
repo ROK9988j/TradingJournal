@@ -78,6 +78,24 @@ def save_users(users):
     with open(USERS_DB_PATH, 'w') as f:
         json.dump(users, f, indent=2)
 
+def migrate_legacy_journal(username):
+    """Migrate existing journal_entries.json to user-specific journal"""
+    legacy_path = os.path.join(os.path.dirname(__file__), 'journal_entries.json')
+    if os.path.exists(legacy_path):
+        try:
+            with open(legacy_path, 'r') as f:
+                legacy_data = json.load(f)
+            if legacy_data.get('entries'):
+                # Copy to user's journal
+                user_journal_path = get_user_journal_path(username)
+                with open(user_journal_path, 'w') as f:
+                    json.dump(legacy_data, f, indent=2)
+                print(f"Migrated {len(legacy_data['entries'])} entries to {username}'s journal")
+                return len(legacy_data['entries'])
+        except Exception as e:
+            print(f"Migration error: {e}")
+    return 0
+
 def create_user(username, password):
     """Create a new user"""
     users = load_users()
@@ -89,6 +107,13 @@ def create_user(username, password):
         'created': datetime.now().isoformat()
     }
     save_users(users)
+
+    # If this is the first user, migrate any legacy journal data
+    if len(users) == 1:
+        migrated = migrate_legacy_journal(username)
+        if migrated:
+            return True, f"Account created with {migrated} existing entries migrated"
+
     return True, "Account created"
 
 def verify_user(username, password):
