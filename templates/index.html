@@ -1377,25 +1377,9 @@ ${text}`;
             }
         }
 
-        // Select an entry to continue editing
+        // Select an entry to continue editing (now same as editEntry)
         function selectEntry(index) {
-            const entry = window.loadedEntries[index];
-            if (!entry) return;
-
-            // Load entry into preview
-            const preview = document.getElementById('preview-content');
-            preview.value = entry.content;
-
-            // Set current entry
-            currentEntry = {
-                timestamp: entry.timestamp,
-                sentiment: entry.sentiment ? { label: entry.sentiment } : null,
-                content: entry.content
-            };
-
-            updateEntryCounter();
-            closeEntriesModal();
-            showStatus('Entry loaded! Add to it or edit directly.', 'success');
+            editEntry(index);  // Just call editEntry for same behavior
         }
 
         // Edit entry - load for editing with index tracking
