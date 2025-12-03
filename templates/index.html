@@ -1358,12 +1358,12 @@ ${text}`;
                             ${entry.sentiment ? `<div class="entry-list-sentiment">${entry.sentiment}</div>` : ''}
                             <div class="entry-list-preview">${entry.preview || 'No preview available'}</div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
-                            <button onclick="editEntry(${idx})" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--accent-blue);" title="Edit this entry">
-                                <i class="fas fa-edit"></i>
+                        <div style="display: flex; gap: 0.5rem; margin-left: 1rem; flex-shrink: 0;">
+                            <button onclick="editEntry(${idx}); event.stopPropagation();" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #58a6ff; color: white; border: none; border-radius: 6px; cursor: pointer;" title="Edit this entry">
+                                <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button onclick="deleteEntry(${idx}, event)" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: #dc3545;" title="Delete this entry">
-                                <i class="fas fa-trash"></i>
+                            <button onclick="deleteEntry(${idx}, event)" class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #f85149; color: white; border: none; border-radius: 6px; cursor: pointer;" title="Delete this entry">
+                                <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
                     </div>
