@@ -835,7 +835,7 @@
                     </button>
                     <button class="btn btn-success" onclick="saveJournal()" id="save-btn">
                         <i class="fas fa-save"></i>
-                        Save
+                        <span id="save-btn-text">Save to Journal</span>
                     </button>
                     <button class="btn btn-secondary" onclick="clearAll()">
                         <i class="fas fa-trash"></i>
@@ -1421,10 +1421,8 @@ ${text}`;
             closeEntriesModal();
 
             // Update save button to show "Update"
-            const saveBtn = document.querySelector('button[onclick="saveJournal()"]');
-            if (saveBtn) {
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Entry';
-            }
+            document.getElementById('save-btn-text').textContent = 'Update Entry';
+            document.getElementById('save-btn').style.background = '#f0ad4e';  // Orange for update mode
 
             showStatus('Editing entry - make changes and click "Update Entry" to save.', 'success');
         }
@@ -1508,10 +1506,8 @@ ${text}`;
                     document.getElementById('preview-content').value = '';
 
                     // Reset save button text
-                    const saveBtn = document.querySelector('button[onclick="saveJournal()"]');
-                    if (saveBtn) {
-                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Journal';
-                    }
+                    document.getElementById('save-btn-text').textContent = 'Save to Journal';
+                    document.getElementById('save-btn').style.background = '';  // Reset to default green
 
                     showStatus('Entry updated!', 'success');
 
@@ -1640,10 +1636,8 @@ ${text}`;
             hideStatus();
 
             // Reset save button text
-            const saveBtn = document.querySelector('button[onclick="saveJournal()"]');
-            if (saveBtn) {
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Journal';
-            }
+            document.getElementById('save-btn-text').textContent = 'Save to Journal';
+            document.getElementById('save-btn').style.background = '';  // Reset to default green
         }
 
         // Entry Counter
