@@ -824,6 +824,45 @@ def api_delete_entry():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/update-entry', methods=['POST'])
+@login_required
+def api_update_entry():
+    """Update an existing entry by index"""
+    try:
+        data = request.json
+        entry_index = data.get('index')
+        new_content = data.get('content')
+
+        if entry_index is None:
+            return jsonify({'error': 'Missing entry index'}), 400
+        if not new_content:
+            return jsonify({'error': 'Missing content'}), 400
+
+        if IS_CLOUD:
+            journal = load_cloud_journal()
+            entries = journal.get('entries', [])
+
+            if 0 <= entry_index < len(entries):
+                # Update the entry content
+                entries[entry_index]['content'] = new_content
+                # Update timestamp to show it was edited
+                entries[entry_index]['edited'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+                # Update preview
+                preview_text = new_content[:150].replace('\n', ' ')
+                if len(new_content) > 150:
+                    preview_text += '...'
+                entries[entry_index]['preview'] = preview_text
+
+                save_cloud_journal(journal)
+                return jsonify({'success': True, 'message': 'Entry updated'})
+            else:
+                return jsonify({'error': 'Entry not found'}), 404
+        else:
+            return jsonify({'error': 'Update not supported in local mode'}), 400
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/clear-journal', methods=['POST'])
 @login_required
 def api_clear_journal():

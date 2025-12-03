@@ -998,6 +998,7 @@
         let currentEntry = null;
         let marketData = null;
         let uploadedImages = [];  // Array of {url, public_id} objects
+        let editingEntryIndex = null;  // Track if we're editing an existing entry
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -1397,10 +1398,35 @@ ${text}`;
             showStatus('Entry loaded! Add to it or edit directly.', 'success');
         }
 
-        // Edit entry (same as select but with a different message)
+        // Edit entry - load for editing with index tracking
         function editEntry(index) {
-            selectEntry(index);
-            showStatus('Entry loaded for editing. Make changes and Save to Journal.', 'success');
+            const entry = window.loadedEntries[index];
+            if (!entry) return;
+
+            // Load entry into preview
+            const preview = document.getElementById('preview-content');
+            preview.value = entry.content;
+
+            // Set current entry
+            currentEntry = {
+                timestamp: entry.timestamp,
+                sentiment: entry.sentiment ? { label: entry.sentiment } : null,
+                content: entry.content
+            };
+
+            // Track which entry we're editing (use original index in the array)
+            editingEntryIndex = index;
+
+            updateEntryCounter();
+            closeEntriesModal();
+
+            // Update save button to show "Update"
+            const saveBtn = document.querySelector('button[onclick="saveJournal()"]');
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Entry';
+            }
+
+            showStatus('Editing entry - make changes and click "Update Entry" to save.', 'success');
         }
 
         // Delete a specific entry
@@ -1441,7 +1467,7 @@ ${text}`;
             document.getElementById('entries-modal').classList.remove('show');
         }
 
-        // Save Journal
+        // Save Journal (handles both new entries and updates)
         async function saveJournal() {
             const previewContent = document.getElementById('preview-content').value.trim();
 
@@ -1450,6 +1476,52 @@ ${text}`;
                 return;
             }
 
+            // Check if we're updating an existing entry
+            if (editingEntryIndex !== null) {
+                // UPDATE existing entry
+                showStatus('Updating entry...', 'loading');
+
+                try {
+                    // Convert display index to original index (list is reversed)
+                    const originalIndex = window.loadedEntries.length - 1 - editingEntryIndex;
+
+                    const response = await fetch('/api/update-entry', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            index: originalIndex,
+                            content: previewContent
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        showStatus(data.error, 'error');
+                        return;
+                    }
+
+                    // Reset edit mode
+                    editingEntryIndex = null;
+                    currentEntry = null;
+                    updateEntryCounter();
+                    document.getElementById('preview-content').value = '';
+
+                    // Reset save button text
+                    const saveBtn = document.querySelector('button[onclick="saveJournal()"]');
+                    if (saveBtn) {
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Journal';
+                    }
+
+                    showStatus('Entry updated!', 'success');
+
+                } catch (error) {
+                    showStatus('Failed to update: ' + error.message, 'error');
+                }
+                return;
+            }
+
+            // CREATE new entry
             // Update the current entry content with any edits
             if (currentEntry) {
                 // Extract the edited content (after the header)
@@ -1562,9 +1634,16 @@ ${text}`;
             document.getElementById('journal-input').value = '';
             document.getElementById('preview-content').value = '';
             currentEntry = null;
+            editingEntryIndex = null;  // Reset edit mode
             clearImages();
             updateEntryCounter();
             hideStatus();
+
+            // Reset save button text
+            const saveBtn = document.querySelector('button[onclick="saveJournal()"]');
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save to Journal';
+            }
         }
 
         // Entry Counter
